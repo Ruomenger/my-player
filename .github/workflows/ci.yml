@@ -38,3 +38,6 @@ jobs:
 
       - name: Build renderer and main
         run: npm run build
+
+      - name: E2E playback tests
+        run: npm run test:e2e
