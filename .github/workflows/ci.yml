@@ -22,7 +22,11 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          unset ELECTRON_SKIP_BINARY_DOWNLOAD
+          npm ci
+          node node_modules/electron/install.js
+          node -e "console.log(require('electron'))"
 
       - name: Format check
         run: npm run format:check
