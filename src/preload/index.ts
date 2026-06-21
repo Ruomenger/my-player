@@ -1,8 +1,15 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { appInfoChannel, type AppInfo, type MyPlayerApi } from '../shared/contracts/app'
+import {
+  appInfoChannel,
+  selectAudioFilesChannel,
+  type AppInfo,
+  type LocalAudioTrack,
+  type MyPlayerApi
+} from '../shared/contracts/app'
 
 const api: MyPlayerApi = {
-  getAppInfo: () => ipcRenderer.invoke(appInfoChannel) as Promise<AppInfo>
+  getAppInfo: () => ipcRenderer.invoke(appInfoChannel) as Promise<AppInfo>,
+  selectAudioFiles: () => ipcRenderer.invoke(selectAudioFilesChannel) as Promise<LocalAudioTrack[]>
 }
 
 if (process.contextIsolated) {

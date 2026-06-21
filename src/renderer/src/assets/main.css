@@ -5,6 +5,10 @@ body {
   user-select: none;
 }
 
+audio {
+  display: none;
+}
+
 #root {
   min-height: 100vh;
 }
@@ -193,6 +197,12 @@ h2 {
   background: var(--color-accent-strong);
 }
 
+.primary-action:disabled,
+.play-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
 .content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 280px;
@@ -249,6 +259,55 @@ h2 {
   font-size: 14px;
 }
 
+.track-list {
+  min-height: 0;
+  overflow: auto;
+}
+
+.track-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 2fr) minmax(120px, 1fr) minmax(120px, 1fr) 72px;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--color-text-muted);
+  background: transparent;
+  text-align: left;
+}
+
+.track-row:hover,
+.track-row.is-current {
+  background: #f5f8f1;
+}
+
+.track-row.is-current {
+  color: var(--color-accent-strong);
+}
+
+.track-title {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+  color: var(--color-text);
+  font-weight: 800;
+}
+
+.track-title span,
+.track-row > span:not(.track-title) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track-row > span:not(.track-title) {
+  font-size: 13px;
+}
+
 .queue-panel {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -282,6 +341,11 @@ h2 {
   background: var(--color-surface-muted);
 }
 
+.queue-panel li.is-current {
+  color: var(--color-accent-strong);
+  background: #e4f4ea;
+}
+
 .queue-panel li span {
   color: var(--color-text-muted);
   font-size: 12px;
@@ -294,6 +358,13 @@ h2 {
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.queue-empty {
+  align-self: center;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  text-align: center;
 }
 
 .player-bar {
