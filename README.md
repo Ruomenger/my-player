@@ -22,6 +22,12 @@ export ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-b
 npm install
 ```
 
+### 依赖 override 说明
+
+`package.json` 的 `overrides` 中有一条 `extract-zip > yauzl: 3.4.0`，请勿删除。
+
+`extract-zip@2.0.1`（Electron 安装脚本用来解压预编译二进制的传递依赖，且已是其最新版）在 Node.js 24 下解压时会在写出首个条目后静默卡死，导致 Electron 二进制和 `path.txt` 缺失，安装看似成功但实际无法启动。将其依赖的 `yauzl` 升级到 3.x（现代流实现）即可修复。该 override 仅作用于 extract-zip，未来 Electron 不再使用它时会自动失效。
+
 ## 常用命令
 
 ```bash
