@@ -7,10 +7,14 @@ import { Readable } from 'stream'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import {
   appInfoChannel,
+  getSettingsChannel,
   mediaProtocol,
   selectAudioFilesChannel,
+  updateSettingsChannel,
   type AppInfo,
-  type LocalAudioTrack
+  type LocalAudioTrack,
+  type PlayerSettings,
+  type PlayerSettingsPatch
 } from '../shared/contracts/app'
 import {
   getAudioTitleFromPath,
@@ -18,6 +22,7 @@ import {
   supportedAudioExtensions
 } from '../shared/audio'
 import { getAudioMimeType, parseByteRange } from '../shared/media'
+import { loadPlayerSettings, savePlayerSettings } from './settings'
 
 const mediaFiles = new Map<string, string>()
 
@@ -110,9 +115,11 @@ function registerMediaProtocol(): void {
 }
 
 function createWindow(): void {
+  const { window: savedWindow } = loadPlayerSettings()
+
   const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 760,
+    width: savedWindow.width,
+    height: savedWindow.height,
     minWidth: 960,
     minHeight: 620,
     show: false,
@@ -124,6 +131,31 @@ function createWindow(): void {
       nodeIntegration: false,
       sandbox: true
     }
+  })
+
+  const persistWindowSize = (): void => {
+    if (mainWindow.isDestroyed() || mainWindow.isMinimized()) {
+      return
+    }
+
+    const [width, height] = mainWindow.getSize()
+    savePlayerSettings({ window: { width, height } })
+  }
+
+  let resizeTimer: ReturnType<typeof setTimeout> | null = null
+  mainWindow.on('resize', () => {
+    if (resizeTimer) {
+      clearTimeout(resizeTimer)
+    }
+    resizeTimer = setTimeout(persistWindowSize, 400)
+  })
+
+  mainWindow.on('close', () => {
+    if (resizeTimer) {
+      clearTimeout(resizeTimer)
+      resizeTimer = null
+    }
+    persistWindowSize()
   })
 
   mainWindow.on('ready-to-show', () => {
@@ -176,6 +208,14 @@ ipcMain.handle(selectAudioFilesChannel, async (event): Promise<LocalAudioTrack[]
   }
 
   return result.filePaths.filter(isSupportedAudioFilePath).map(toLocalAudioTrack)
+})
+
+ipcMain.handle(getSettingsChannel, (): PlayerSettings => {
+  return loadPlayerSettings()
+})
+
+ipcMain.handle(updateSettingsChannel, (_event, patch: PlayerSettingsPatch): PlayerSettings => {
+  return savePlayerSettings(patch)
 })
 
 app.whenReady().then(() => {

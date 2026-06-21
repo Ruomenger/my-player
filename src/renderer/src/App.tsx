@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AppInfo, LocalAudioTrack } from '../../shared/contracts/app'
+import { formatDuration } from '../../shared/time'
 
 const navItems = [
   { label: '本地音乐', icon: Library, active: true },
@@ -33,7 +34,11 @@ function App(): React.JSX.Element {
   const [isSelectingFiles, setIsSelectingFiles] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [playbackError, setPlaybackError] = useState<string | null>(null)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [volume, setVolume] = useState(1)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const settingsLoadedRef = useRef(false)
 
   const currentTrack = useMemo(
     () => tracks.find((track) => track.id === currentTrackId) ?? null,
@@ -53,6 +58,36 @@ function App(): React.JSX.Element {
   useEffect(() => {
     window.myPlayer.getAppInfo().then(setAppInfo).catch(console.error)
   }, [])
+
+  useEffect(() => {
+    window.myPlayer
+      .getSettings()
+      .then((settings) => {
+        setVolume(settings.volume)
+      })
+      .catch(console.error)
+      .finally(() => {
+        settingsLoadedRef.current = true
+      })
+  }, [])
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume
+    }
+  }, [volume])
+
+  useEffect(() => {
+    if (!settingsLoadedRef.current) {
+      return
+    }
+
+    const timer = setTimeout(() => {
+      window.myPlayer.updateSettings({ volume }).catch(console.error)
+    }, 400)
+
+    return () => clearTimeout(timer)
+  }, [volume])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -154,11 +189,37 @@ function App(): React.JSX.Element {
     playTrack(currentTrack)
   }
 
+  const seek = (seconds: number): void => {
+    const audio = audioRef.current
+
+    if (!audio || !Number.isFinite(audio.duration)) {
+      return
+    }
+
+    audio.currentTime = seconds
+    setCurrentTime(seconds)
+  }
+
   return (
     <main className="app-shell">
       <audio
         ref={audioRef}
         preload="metadata"
+        onLoadStart={() => {
+          setCurrentTime(0)
+          setDuration(0)
+        }}
+        onLoadedMetadata={(event) => {
+          const value = event.currentTarget.duration
+          setDuration(Number.isFinite(value) ? value : 0)
+        }}
+        onDurationChange={(event) => {
+          const value = event.currentTarget.duration
+          setDuration(Number.isFinite(value) ? value : 0)
+        }}
+        onTimeUpdate={(event) => {
+          setCurrentTime(event.currentTarget.currentTime)
+        }}
         onEnded={() => {
           if (tracks.length > 1) {
             moveBy(1)
@@ -300,43 +361,68 @@ function App(): React.JSX.Element {
           </div>
         </div>
 
-        <div className="transport">
-          <button
-            className="icon-button"
-            type="button"
-            aria-label="上一首"
-            onClick={() => moveBy(-1)}
-          >
-            <SkipBack size={19} aria-hidden="true" />
-          </button>
-          <button
-            className="play-button"
-            type="button"
-            aria-label={isPlaying ? '暂停' : '播放'}
-            disabled={tracks.length === 0}
-            onClick={togglePlay}
-          >
-            {isPlaying ? (
-              <Pause size={22} fill="currentColor" aria-hidden="true" />
-            ) : (
-              <Play size={22} fill="currentColor" aria-hidden="true" />
-            )}
-          </button>
-          <button
-            className="icon-button"
-            type="button"
-            aria-label="下一首"
-            onClick={() => moveBy(1)}
-          >
-            <SkipForward size={19} aria-hidden="true" />
-          </button>
+        <div className="player-center">
+          <div className="transport">
+            <button
+              className="icon-button"
+              type="button"
+              aria-label="上一首"
+              onClick={() => moveBy(-1)}
+            >
+              <SkipBack size={19} aria-hidden="true" />
+            </button>
+            <button
+              className="play-button"
+              type="button"
+              aria-label={isPlaying ? '暂停' : '播放'}
+              disabled={tracks.length === 0}
+              onClick={togglePlay}
+            >
+              {isPlaying ? (
+                <Pause size={22} fill="currentColor" aria-hidden="true" />
+              ) : (
+                <Play size={22} fill="currentColor" aria-hidden="true" />
+              )}
+            </button>
+            <button
+              className="icon-button"
+              type="button"
+              aria-label="下一首"
+              onClick={() => moveBy(1)}
+            >
+              <SkipForward size={19} aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="progress">
+            <span className="time">{formatDuration(currentTime)}</span>
+            <input
+              className="seek"
+              type="range"
+              min={0}
+              max={duration || 0}
+              step={0.1}
+              value={duration ? Math.min(currentTime, duration) : 0}
+              disabled={!duration}
+              aria-label="播放进度"
+              onChange={(event) => seek(Number(event.target.value))}
+            />
+            <span className="time">{formatDuration(duration)}</span>
+          </div>
         </div>
 
         <div className="volume">
           <Volume2 size={18} aria-hidden="true" />
-          <div className="volume-track" aria-hidden="true">
-            <span />
-          </div>
+          <input
+            className="volume-slider"
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={volume}
+            aria-label="音量"
+            onChange={(event) => setVolume(Number(event.target.value))}
+          />
         </div>
       </footer>
     </main>

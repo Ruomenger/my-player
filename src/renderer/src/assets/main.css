@@ -16,7 +16,7 @@ audio {
 .app-shell {
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) 96px;
+  grid-template-rows: minmax(0, 1fr) 104px;
   width: 100vw;
   height: 100vh;
   background: var(--color-background);
@@ -416,11 +416,38 @@ h2 {
   font-size: 12px;
 }
 
+.player-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .transport {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.progress .time {
+  flex: 0 0 auto;
+  min-width: 40px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress .time:last-child {
+  text-align: right;
 }
 
 .icon-button,
@@ -459,19 +486,26 @@ h2 {
   color: var(--color-text-muted);
 }
 
-.volume-track {
-  width: min(140px, 18vw);
-  height: 6px;
-  border-radius: 999px;
-  background: var(--color-surface-muted);
+.seek,
+.volume-slider {
+  height: 4px;
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
 }
 
-.volume-track span {
-  display: block;
-  width: 62%;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--color-accent);
+.seek {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.seek:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.volume-slider {
+  width: min(120px, 16vw);
 }
 
 @media (max-width: 1080px) {
