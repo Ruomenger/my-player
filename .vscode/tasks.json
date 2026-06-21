@@ -1,0 +1,54 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm: dev",
+      "type": "npm",
+      "script": "dev",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "npm: check",
+      "type": "npm",
+      "script": "check",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: test:unit",
+      "type": "npm",
+      "script": "test:unit",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: test:unit:watch",
+      "type": "npm",
+      "script": "test:unit:watch",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "npm: build",
+      "type": "npm",
+      "script": "build",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: pack:mac",
+      "type": "npm",
+      "script": "pack:mac",
+      "problemMatcher": []
+    }
+  ]
+}
