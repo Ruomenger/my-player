@@ -22,11 +22,12 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: ''
         run: |
-          unset ELECTRON_SKIP_BINARY_DOWNLOAD
           npm ci
-          node node_modules/electron/install.js
-          node -e "console.log(require('electron'))"
+          npm rebuild electron --foreground-scripts
+          node -e "const fs = require('node:fs'); const electron = require('electron'); console.log(electron); if (!fs.existsSync(electron)) throw new Error('Electron executable is missing')"
 
       - name: Format check
         run: npm run format:check
